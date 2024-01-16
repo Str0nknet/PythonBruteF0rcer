@@ -1,6 +1,13 @@
 # PythonBruteF0rcer
- The simplest program allowing for device scanning and SSH attack
-!!! Please remember to name the password list 'PasswordList.txt'. !!!
+usage: Network_Atacker.py [-h] --PassList PASSLIST -T T
+
+Network Attacker Tool
+
+options:
+  -h, --help           show this help message and exit
+  --PassList PASSLIST  Specify the password list file to use
+  -T T                 Target IP address
+                                              
 
 
 
